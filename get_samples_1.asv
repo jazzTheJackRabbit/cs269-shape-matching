@@ -13,9 +13,7 @@ ind0=ind0(1:Nstart);
 xi=x(ind0);
 yi=y(ind0);
 ti=t(ind0);
-xi=xi(:);
-yi=yi(:);
-ti=ti(:);
+
 
 d2=dist2([xi yi],[xi yi]);
 d2=d2+diag(Inf*ones(Nstart,1));
@@ -23,10 +21,10 @@ d2=d2+diag(Inf*ones(Nstart,1));
 s=1;
 while s
    % find closest pair
-   [a,b]=min(d2);
-   [c,d]=min(a);
-   I=b(d);
-   J=d;
+   [minVal1,rowIdxOfColMins]=min(d2);
+   [minVal2,minColsIdx]=min(minVal1);
+   I=rowIdxOfColMins(minColsIdx);
+   J=minColsIdx;
    % remove one of the points
    xi(J)=[];
    yi(J)=[];

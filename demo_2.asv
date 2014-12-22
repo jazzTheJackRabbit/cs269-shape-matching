@@ -31,14 +31,14 @@ nn=42;
 % w=4;
 % sf=2.5; %scale factor
 
-load parameters
+
 cmap=flipud(gray);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Image Loading
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = load_shapes(mm,nn,train_data,sf);
+[shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = load_shapes(mm,nn,train_data,sf)
 
 if display_flag
     %Display first image on a 2x2 grid, at position 1
@@ -61,15 +61,15 @@ end
 %%% Edge Detection
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp('extracting boundary points');
+disp('extracting boundary points...')
 
 %Extract boundary points for the first shape
-[shape_1_x,shape_1_y,shape_1_theta]=extractBoundary(shape_1_matrix);
+[shape_1_x,shape_1_y,shape_1_theta]=boundary_extraction(shape_1_matrix);
 
 nsamp1=length(shape_1_x);
 
 if nsamp1 >= nsamp
-    [shape_1_x,shape_1_y,shape_1_theta] = sampleBoundaryPoints(shape_1_x,shape_1_y,shape_1_theta,nsamp); %Needs change
+    [shape_1_x,shape_1_y,shape_1_theta] = get_samples_1(shape_1_x,shape_1_y,shape_1_theta,nsamp); %Needs change
 else  
     error('Shape 1: Insufficient samples')
 end
@@ -78,12 +78,12 @@ end
 contour_1 = [shape_1_x shape_1_y];
 
 %Extract boundary points for the second shape
-[shape_2_x,shape_2_y,shape_2_theta] = extractBoundary(shape_2_matrix);
+[shape_2_x,shape_2_y,shape_2_theta] = boundary_extraction(shape_2_matrix);
 
 nsamp2 = length(shape_2_x);
 
 if nsamp2 >= nsamp
-    [shape_2_x,shape_2_y,shape_2_theta] = sampleBoundaryPoints(shape_2_x,shape_2_y,shape_2_theta,nsamp);%Needs change
+    [shape_2_x,shape_2_y,shape_2_theta] = get_samples_1(shape_2_x,shape_2_y,shape_2_theta,nsamp);%Needs change
 else
     error('Shape 2: Insufficient samples')
 end
@@ -246,7 +246,7 @@ while s
     
     % warp each coordinate
     fx_aff=cx(n_good+1:n_good+3)'*[ones(1,nsamp); contour_1'];
-    d2=max(eucledianDistMatrix(X3b,contour_1),0);
+    d2=max(dist2(X3b,contour_1),0);
     U=d2.*log(d2+eps);
     fx_wrp=cx(1:n_good)'*U;
     fx=fx_aff+fx_wrp;
@@ -259,7 +259,7 @@ while s
     % apply the warp to the tangent vectors to get the new angles
     Xtan=contour_1+tan_eps*[cos(shape_1_theta) sin(shape_1_theta)];
     fx_aff=cx(n_good+1:n_good+3)'*[ones(1,nsamp); Xtan'];
-    d2=max(eucledianDistMatrix(X3b,Xtan),0);
+    d2=max(dist2(X3b,Xtan),0);
     U=d2.*log(d2+eps);
     fx_wrp=cx(1:n_good)'*U;
     fx=fx_aff+fx_wrp;
@@ -279,7 +279,7 @@ while s
         
         % show warped coordinate grid
         fx_aff=cx(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
-        d2=eucledianDistMatrix(X3b,[x y]);
+        d2=dist2(X3b,[x y]);
         fx_wrp=cx(1:n_good)'*(d2.*log(d2+eps));
         fx=fx_aff+fx_wrp;
         fy_aff=cy(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
@@ -308,7 +308,7 @@ end
 % [x,y]=meshgrid(1:N2,1:N1);
 % x=x(:);y=y(:);M=length(x);
 % fx_aff=cx(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
-% d2=eucledianDistMatrix(X3b,[x y]);
+% d2=dist2(X3b,[x y]);
 % fx_wrp=cx(1:n_good)'*(d2.*log(d2+eps));
 % fx=fx_aff+fx_wrp;
 % fy_aff=cy(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
@@ -362,7 +362,7 @@ end
 %    tmp=win_fun.*tmp;
 %    win_list_2(qq,:)=tmp(:)';
 % end
-% ssd_all=sqrt(eucledianDistMatrix(win_list_1,win_list_2));
+% ssd_all=sqrt(dist2(win_list_1,win_list_2));
 % if 0
 %    % visualize paired-up patches
 %    for qq=1:nsamp

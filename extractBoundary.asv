@@ -1,0 +1,23 @@
+function [x,y,t,samplePoints]=extractBoundary(im);
+
+samplePoints=contourc(im,[.5 .5]);
+[Gx,Gy]=gradient(im);
+
+fz=samplePoints(1,:)~=0.5;
+samplePoints(:,find(~fz))=NaN;
+B=samplePoints(:,find(fz));
+
+samplePoints(:,samplePoints(1,:)==0.5)=[];
+nSamples = size(samplePoints,2);
+
+npts=size(B,2);
+t=zeros(npts,1);
+for n=1:npts
+   x0=round(B(1,n));
+   y0=round(B(2,n));
+   t(n)=atan2(Gy(y0,x0),Gx(y0,x0))+pi/2;
+end
+
+x=B(1,:)';
+y=B(2,:)';
+

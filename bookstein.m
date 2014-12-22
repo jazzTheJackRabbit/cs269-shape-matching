@@ -11,7 +11,7 @@ if N~=Nb
 end
 
 % compute distances between left points
-r2=dist2(X,X);
+r2=eucledianDistMatrix(X,X);
 
 K=r2.*log(r2+eye(N,N)); % add identity matrix to make K zero on the diagonal
 P=[ones(N,1) X];

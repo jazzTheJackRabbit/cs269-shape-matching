@@ -18,7 +18,7 @@ nsamp=size(Bsamp,2);
 in_vec=out_vec==0;
 
 % compute r,theta arrays
-r_array=real(sqrt(dist2(Bsamp',Bsamp'))); % real is needed to
+r_array=real(sqrt(eucledianDistMatrix(Bsamp',Bsamp'))); % real is needed to
                                           % prevent bug in Unix version
 theta_array_abs=atan2(Bsamp(2,:)'*ones(1,nsamp)-ones(nsamp,1)*Bsamp(2,:),Bsamp(1,:)'*ones(1,nsamp)-ones(nsamp,1)*Bsamp(1,:))';
 theta_array=theta_array_abs-Tsamp'*ones(1,nsamp);
