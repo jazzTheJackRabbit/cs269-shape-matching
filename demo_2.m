@@ -129,13 +129,17 @@ out_vec_2=zeros(1,nsamp);
 %Compute correspondence and alignment transform for each iteration
 while s
     disp(['iter=' int2str(k)])
-    disp('computing shape contexts for (deformed) model...')
-    [BH1,mean_dist_1]=sc_compute(contour_1',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);
+    
+    %Compute shape contexts for shape 1
+    disp('computing shape contexts for (deformed) model...')    
+    [BH1,mean_dist_1]=sc_compute(contour_1',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);    
     disp('done.')
     
     % apply the scale estimate from the warped model to the test shape
-    disp('computing shape contexts for target...')
-    [BH2,mean_dist_2]=sc_compute(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);
+    
+    %Compute shape contexts for shape 2
+    disp('computing shape contexts for target...')        
+    [BH2,mean_dist_2]=sc_compute(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);    
     disp('done.')
 
     if affine_start_flag
@@ -150,6 +154,7 @@ while s
     end
     beta_k=(mean_dist_2^2)*lambda_o;
 
+    
     costmat_shape=hist_cost_2(BH1,BH2);
     theta_diff=repmat(shape_1_theta,1,nsamp)-repmat(shape_2_theta',nsamp,1);
     %   costmat_theta=abs(atan2(sin(theta_diff),cos(theta_diff)))/pi;
@@ -160,6 +165,7 @@ while s
         % ignore edge polarity
         costmat_theta=0.5*(1-cos(2*theta_diff));
     end      
+    
     costmat=(1-ori_weight)*costmat_shape+ori_weight*costmat_theta;
     nptsd=nsamp+ndum;
     costmat2=eps_dum*ones(nptsd,nptsd);
