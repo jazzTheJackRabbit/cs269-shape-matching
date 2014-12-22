@@ -4,13 +4,14 @@ load digit_100_train_easy;
 %   load digit_100_train_hard;
 end
 
-% choose which two digits to compare:
+% choose two digits to compare:
 mm=35;
 nn=42;
 
-%%%
-%%%Define flags and parameters:
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Define flags and parameters:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 display_flag=1;
 affine_start_flag=1;
 polarity_flag=1;
@@ -32,86 +33,89 @@ sf=2.5; %scale factor
 
 cmap=flipud(gray);
 
-%%%
-%%% image loading
-%%%
-V1=reshape(train_data(mm,:),28,28)'; %Reshape the row vector of image 1x784 into 28x28
-V1=imresize(V1,sf,'bil'); %Scale the image to 70x70 using bilinear interpolation
-V2=reshape(train_data(nn,:),28,28)';%Reshape the row vector of image 1x784 into 28x28
-V2=imresize(V2,sf,'bil'); %Scale the image to 70x70 using bilinear interpolation
-[N1,N2]=size(V1);%n1=70 , N2=70
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Image Loading
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = load_shapes(mm,nn,train_data,sf)
 
 if display_flag
-%Display first image on a 2x2 grid, at position 1
-figure(1)
-subplot(2,2,1)
-imagesc(V1);axis('image')
-title(int2str(mm))
+    %Display first image on a 2x2 grid, at position 1
+    figure(1)
+    subplot(2,2,1)
+    imagesc(shape_1_matrix);axis('image')
+    title(int2str(mm))
 
-%Display second image on a 2x2 grid, at position 2
-subplot(2,2,3)
-imagesc(V2);axis('image')
-title(int2str(nn))
+    %Display second image on a 2x2 grid, at position 2
+    subplot(2,2,3)
+    imagesc(shape_2_matrix);axis('image')
+    title(int2str(nn))
 
-%Show image in grayscale
-colormap(cmap)
-drawnow
+    %Show image in grayscale
+    colormap(cmap)
+    drawnow
 end
 
-%%%
-%%% edge detection
-%%%
-[x2,y2,t2]=bdry_extract_3(V2);
-nsamp2=length(x2);
-if nsamp2>=nsamp
-[x2,y2,t2]=get_samples_1(x2,y2,t2,nsamp);
-else
-error('shape #2 doesn''t have enough samples')
-end
-Y=[x2 y2];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Edge Detection
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% get boundary points
 disp('extracting boundary points...')
-[x1,y1,t1]=bdry_extract_3(V1);
+[shape_1_x,shape_1_y,shape_1_theta]=boundary_extraction(shape_1_matrix);
 
-nsamp1=length(x1);
+nsamp1=length(shape_1_x);
+
 if nsamp1>=nsamp
-[x1,y1,t1]=get_samples_1(x1,y1,t1,nsamp);
+    [shape_1_x,shape_1_y,shape_1_theta] = get_samples_1(shape_1_x,shape_1_y,shape_1_theta,nsamp); %Needs change
 else  
-error('shape #1 doesn''t have enough samples')
+    error('Shape 1 doesn''t have enough samples')
 end
-X=[x1 y1];
+
+X=[shape_1_x shape_1_y];
+
+[shape_2_x,shape_2_,t2]=boundary_extraction(shape_2_matrix);
+
+nsamp2=length(shape_2_x);
+if nsamp2>=nsamp
+    [shape_2_x,y2,t2]=get_samples_1(shape_2_x,y2,t2,nsamp);
+else
+    error('shape #2 doesn''t have enough samples')
+end
+Y=[shape_2_x y2];
+
+
 
 if display_flag
-subplot(2,2,2)
-plot(X(:,1),X(:,2),'g^')
-hold on
-quiver(X(:,1),X(:,2),cos(t1),sin(t1),0.5,'g.')
-hold off
-axis('ij');axis([1 N2 1 N1])
-title([int2str(length(x1)) ' samples'])
-subplot(2,2,4)
-plot(Y(:,1),Y(:,2),'ro')
-hold on
-quiver(Y(:,1),Y(:,2),cos(t2),sin(t2),0.5,'r.')
-hold off
-axis('ij');axis([1 N2 1 N1])
-title([int2str(length(x2)) ' samples'])
-drawnow	
+    subplot(2,2,2)
+    plot(X(:,1),X(:,2),'g^')
+    hold on
+    quiver(X(:,1),X(:,2),cos(shape_1_theta),sin(shape_1_theta),0.5,'g.')
+    hold off
+    axis('ij');axis([1 shape_dim_2 1 shape_dim_1])
+    title([int2str(length(shape_1_x)) ' samples'])
+    subplot(2,2,4)
+    plot(Y(:,1),Y(:,2),'ro')
+    hold on
+    quiver(Y(:,1),Y(:,2),cos(t2),sin(t2),0.5,'r.')
+    hold off
+    axis('ij');axis([1 shape_dim_2 1 shape_dim_1])
+    title([int2str(length(shape_2_x)) ' samples'])
+    drawnow	
 end
 
 if display_flag
-[x,y]=meshgrid(linspace(1,N2,36),linspace(1,N1,36));
-x=x(:);y=y(:);M=length(x);
+    [x,y]=meshgrid(linspace(1,shape_dim_2,36),linspace(1,shape_dim_1,36));
+    x=x(:);y=y(:);M=length(x);
 end
 
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% compute correspondences
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %X is the 100 sample point matrix from image 1 and similarly Y from image 2
 Xk=X;
 %t1 is the angle of the gradient for image 1
-tk=t1;
+tk=shape_1_theta;
 k=1;
 s=1;
 ndum=round(ndum_frac*nsamp);
@@ -192,7 +196,7 @@ end
 hold off
 axis('ij')
 title([int2str(n_good) ' correspondences (warped X)'])
-axis([1 N2 1 N1])
+axis([1 shape_dim_2 1 shape_dim_1])
 drawnow	
 end
 
@@ -206,7 +210,7 @@ plot([X2b(:,1) Y2(:,1)]',[X2b(:,2) Y2(:,2)]','k-')
 hold off
 axis('ij')
 title([int2str(n_good) ' correspondences (unwarped X)'])
-axis([1 N2 1 N1])
+axis([1 shape_dim_2 1 shape_dim_1])
 drawnow	
 end
 
@@ -235,7 +239,7 @@ fy=fy_aff+fy_wrp;
 Z=[fx; fy]';
 
 % apply the warp to the tangent vectors to get the new angles
-Xtan=X+tan_eps*[cos(t1) sin(t1)];
+Xtan=X+tan_eps*[cos(shape_1_theta) sin(shape_1_theta)];
 fx_aff=cx(n_good+1:n_good+3)'*[ones(1,nsamp); Xtan'];
 d2=max(dist2(X3b,Xtan),0);
 U=d2.*log(d2+eps);
@@ -253,7 +257,7 @@ figure(4)
 plot(Z(:,1),Z(:,2),'g^',Y(:,1),Y(:,2),'ro');
 axis('ij')
 title(['k=' int2str(k) ', \lambda_o=' num2str(lambda_o) ', I_f=' num2str(E) ', aff.cost=' num2str(aff_cost) ', SC cost=' num2str(sc_cost)])
-axis([1 N2 1 N1])
+axis([1 shape_dim_2 1 shape_dim_1])
 % show warped coordinate grid
 fx_aff=cx(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
 d2=dist2(X3b,[x y]);

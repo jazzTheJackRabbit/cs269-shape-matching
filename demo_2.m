@@ -9,7 +9,7 @@ mm=35;
 nn=42;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%Define flags and parameters:
+%%% Define flags and parameters:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 display_flag=1;
@@ -34,21 +34,21 @@ sf=2.5; %scale factor
 cmap=flipud(gray);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% image loading
+%%% Image Loading
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[V1,V2,N1,N2] = load_shapes(mm,nn,train_data,sf)
+[shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = load_shapes(mm,nn,train_data,sf)
 
 if display_flag
     %Display first image on a 2x2 grid, at position 1
     figure(1)
     subplot(2,2,1)
-    imagesc(V1);axis('image')
+    imagesc(shape_1_matrix);axis('image')
     title(int2str(mm))
 
     %Display second image on a 2x2 grid, at position 2
     subplot(2,2,3)
-    imagesc(V2);axis('image')
+    imagesc(shape_2_matrix);axis('image')
     title(int2str(nn))
 
     %Show image in grayscale
@@ -57,49 +57,59 @@ if display_flag
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% edge detection
+%%% Edge Detection
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[x2,y2,t2]=boundary_extraction(V2);
-nsamp2=length(x2);
-if nsamp2>=nsamp
-[x2,y2,t2]=get_samples_1(x2,y2,t2,nsamp);
-else
-error('shape #2 doesn''t have enough samples')
-end
-Y=[x2 y2];
 
-% get boundary points
 disp('extracting boundary points...')
-[x1,y1,t1]=boundary_extraction(V1);
 
-nsamp1=length(x1);
-if nsamp1>=nsamp
-[x1,y1,t1]=get_samples_1(x1,y1,t1,nsamp);
+%Extract boundary points for the first shape
+[shape_1_x,shape_1_y,shape_1_theta]=boundary_extraction(shape_1_matrix);
+
+nsamp1=length(shape_1_x);
+
+if nsamp1 >= nsamp
+    [shape_1_x,shape_1_y,shape_1_theta] = get_samples_1(shape_1_x,shape_1_y,shape_1_theta,nsamp); %Needs change
 else  
-error('shape #1 doesn''t have enough samples')
+    error('Shape 1: Insufficient samples')
 end
-X=[x1 y1];
 
+contour_1 = [shape_1_x shape_1_y];
+
+%Extract boundary points for the second shape
+[shape_2_x,shape_2_y,shape_2_theta] = boundary_extraction(shape_2_matrix);
+
+nsamp2 = length(shape_2_x);
+
+if nsamp2 >= nsamp
+    [shape_2_x,shape_2_y,shape_2_theta] = get_samples_1(shape_2_x,shape_2_y,shape_2_theta,nsamp);%Needs change
+else
+    error('Shape 2: Insufficient samples')
+end
+
+contour_2 = [shape_2_x shape_2_y];
+
+
+%Display the contours
 if display_flag
     subplot(2,2,2)
-    plot(X(:,1),X(:,2),'g^')
+    plot(contour_1(:,1),contour_1(:,2),'g^')
     hold on
-    quiver(X(:,1),X(:,2),cos(t1),sin(t1),0.5,'g.')
+    quiver(contour_1(:,1),contour_1(:,2),cos(shape_1_theta),sin(shape_1_theta),0.5,'g.')
     hold off
-    axis('ij');axis([1 N2 1 N1])
-    title([int2str(length(x1)) ' samples'])
+    axis('ij');axis([1 shape_dim_2 1 shape_dim_1])
+    title([int2str(length(shape_1_x)) ' samples'])
     subplot(2,2,4)
-    plot(Y(:,1),Y(:,2),'ro')
+    plot(contour_2(:,1),contour_2(:,2),'ro')
     hold on
-    quiver(Y(:,1),Y(:,2),cos(t2),sin(t2),0.5,'r.')
+    quiver(contour_2(:,1),contour_2(:,2),cos(shape_2_theta),sin(shape_2_theta),0.5,'r.')
     hold off
-    axis('ij');axis([1 N2 1 N1])
-    title([int2str(length(x2)) ' samples'])
+    axis('ij');axis([1 shape_dim_2 1 shape_dim_1])
+    title([int2str(length(shape_2_x)) ' samples'])
     drawnow	
 end
 
 if display_flag
-    [x,y]=meshgrid(linspace(1,N2,36),linspace(1,N1,36));
+    [x,y]=meshgrid(linspace(1,shape_dim_2,36),linspace(1,shape_dim_1,36));
     x=x(:);y=y(:);M=length(x);
 end
 
@@ -108,9 +118,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %X is the 100 sample point matrix from image 1 and similarly Y from image 2
-Xk=X;
+Xk=contour_1;
 %t1 is the angle of the gradient for image 1
-tk=t1;
+tk=shape_1_theta;
 k=1;
 s=1;
 ndum=round(ndum_frac*nsamp);
@@ -124,7 +134,7 @@ disp('computing shape contexts for (deformed) model...')
 disp('done.')
 % apply the scale estimate from the warped model to the test shape
 disp('computing shape contexts for target...')
-[BH2,mean_dist_2]=sc_compute(Y',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);
+[BH2,mean_dist_2]=sc_compute(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);
 disp('done.')
 
 if affine_start_flag
@@ -140,7 +150,7 @@ end
 beta_k=(mean_dist_2^2)*lambda_o;
 
 costmat_shape=hist_cost_2(BH1,BH2);
-theta_diff=repmat(tk,1,nsamp)-repmat(t2',nsamp,1);
+theta_diff=repmat(tk,1,nsamp)-repmat(shape_2_theta',nsamp,1);
 %   costmat_theta=abs(atan2(sin(theta_diff),cos(theta_diff)))/pi;
 if polarity_flag
 % use edge polarity
@@ -165,10 +175,10 @@ X2=NaN*ones(nptsd,2);
 X2(1:nsamp,:)=Xk;
 X2=X2(cvec,:);
 X2b=NaN*ones(nptsd,2);
-X2b(1:nsamp,:)=X;
+X2b(1:nsamp,:)=contour_1;
 X2b=X2b(cvec,:);
 Y2=NaN*ones(nptsd,2);
-Y2(1:nsamp,:)=Y;
+Y2(1:nsamp,:)=contour_2;
 
 % extract coordinates of non-dummy correspondences and use them
 % to estimate transformation
@@ -186,26 +196,26 @@ h=plot([X2(:,1) Y2(:,1)]',[X2(:,2) Y2(:,2)]','k-');
 if 1
 %	 set(h,'linewidth',1)
 quiver(Xk(:,1),Xk(:,2),cos(tk),sin(tk),0.5,'g')
-quiver(Y(:,1),Y(:,2),cos(t2),sin(t2),0.5,'r')
+quiver(contour_2(:,1),contour_2(:,2),cos(shape_2_theta),sin(shape_2_theta),0.5,'r')
 end
 hold off
 axis('ij')
 title([int2str(n_good) ' correspondences (warped X)'])
-axis([1 N2 1 N1])
+axis([1 shape_dim_2 1 shape_dim_1])
 drawnow	
 end
 
 if display_flag
 % show the correspondences between the untransformed images
 figure(3)
-plot(X(:,1),X(:,2),'g^',Y(:,1),Y(:,2),'ro')
+plot(contour_1(:,1),contour_1(:,2),'g^',contour_2(:,1),contour_2(:,2),'ro')
 ind=cvec(ind_good);
 hold on
 plot([X2b(:,1) Y2(:,1)]',[X2b(:,2) Y2(:,2)]','k-')
 hold off
 axis('ij')
 title([int2str(n_good) ' correspondences (unwarped X)'])
-axis([1 N2 1 N1])
+axis([1 shape_dim_2 1 shape_dim_1])
 drawnow	
 end
 
@@ -222,19 +232,19 @@ aff_cost=log(s(1)/s(2));
 sc_cost=max(mean(a1),mean(a2));
 
 % warp each coordinate
-fx_aff=cx(n_good+1:n_good+3)'*[ones(1,nsamp); X'];
-d2=max(dist2(X3b,X),0);
+fx_aff=cx(n_good+1:n_good+3)'*[ones(1,nsamp); contour_1'];
+d2=max(dist2(X3b,contour_1),0);
 U=d2.*log(d2+eps);
 fx_wrp=cx(1:n_good)'*U;
 fx=fx_aff+fx_wrp;
-fy_aff=cy(n_good+1:n_good+3)'*[ones(1,nsamp); X'];
+fy_aff=cy(n_good+1:n_good+3)'*[ones(1,nsamp); contour_1'];
 fy_wrp=cy(1:n_good)'*U;
 fy=fy_aff+fy_wrp;
 
 Z=[fx; fy]';
 
 % apply the warp to the tangent vectors to get the new angles
-Xtan=X+tan_eps*[cos(t1) sin(t1)];
+Xtan=contour_1+tan_eps*[cos(shape_1_theta) sin(shape_1_theta)];
 fx_aff=cx(n_good+1:n_good+3)'*[ones(1,nsamp); Xtan'];
 d2=max(dist2(X3b,Xtan),0);
 U=d2.*log(d2+eps);
@@ -249,10 +259,10 @@ tk=atan2(Ztan(:,2)-Z(:,2),Ztan(:,1)-Z(:,1));
 
 if display_flag
 figure(4)
-plot(Z(:,1),Z(:,2),'g^',Y(:,1),Y(:,2),'ro');
+plot(Z(:,1),Z(:,2),'g^',contour_2(:,1),contour_2(:,2),'ro');
 axis('ij')
 title(['k=' int2str(k) ', \lambda_o=' num2str(lambda_o) ', I_f=' num2str(E) ', aff.cost=' num2str(aff_cost) ', SC cost=' num2str(sc_cost)])
-axis([1 N2 1 N1])
+axis([1 shape_dim_2 1 shape_dim_1])
 % show warped coordinate grid
 fx_aff=cx(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
 d2=dist2(X3b,[x y]);

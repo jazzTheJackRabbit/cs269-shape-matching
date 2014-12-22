@@ -1,5 +1,5 @@
 function [x,y,t,c]=boundary_extraction(V);
-% [x,y,t,c]=bdry_extract_3(V);
+% [x,y,t,c]=boundary_extraction(V);
 % compute (r,theta) histograms for points along boundary of single 
 % region in binary image V 
 
