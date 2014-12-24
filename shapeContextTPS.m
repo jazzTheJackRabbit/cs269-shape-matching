@@ -3,49 +3,31 @@ while warping
     disp(['iter=' int2str(current_iteration)])
     
     %Compute shape contexts for shape 1
-    disp('computing shape contexts for (deformed) model...')    
-    [BH1,mean_dist_1]=sc_compute(contour_1',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);    
-    disp('done.')
-    
-    % apply the scale estimate from the warped model to the test shape
-    
+    [BH1,mean_dist_1]=sc_compute(contour_1',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);     
     %Compute shape contexts for shape 2
     disp('computing shape contexts for target...')        
-    [BH2,mean_dist_2]=sc_compute(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);    
-    disp('done.')
-
-    if affine_start_flag
+    [BH2,mean_dist_2]=sc_compute(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);   
+    
         if current_iteration==1
-            % use huge regularization to get affine behavior
-            lambda_o=1000;
+                lambda_o=1000;
         else
             lambda_o=beta_init*r^(current_iteration-2);	 
         end
-    else
-        lambda_o=beta_init*r^(current_iteration-1);
-    end
-    beta_k=(mean_dist_2^2)*lambda_o;
+        beta_k=(mean_dist_2^2)*lambda_o;
 
     
     costmat_shape=hist_cost_2(BH1,BH2);
     theta_diff=repmat(shape_1_theta,1,nsamp)-repmat(shape_2_theta',nsamp,1);
-    %   costmat_theta=abs(atan2(sin(theta_diff),cos(theta_diff)))/pi;
-    if polarity_flag
-        % use edge polarity
-        costmat_theta=0.5*(1-cos(theta_diff));
-    else
-        % ignore edge polarity
-        costmat_theta=0.5*(1-cos(2*theta_diff));
-    end      
     
+    costmat_theta=0.5*(1-cos(theta_diff));
     costmat=(1-ori_weight)*costmat_shape+ori_weight*costmat_theta;
+    
     nptsd=nsamp+ndum;
     costmat2=eps_dum*ones(nptsd,nptsd);
     costmat2(1:nsamp,1:nsamp)=costmat;
     cvec=hungarian(costmat2);
-    %   cvec=hungarian_fast(costmat2);
-
-    % update outlier indicator vectors
+    
+    
     [a,cvec2]=sort(cvec);
     out_vec_1=cvec2(1:nsamp)>nsamp;
     out_vec_2=cvec(1:nsamp)>nsamp;
@@ -59,8 +41,6 @@ while warping
     Y2=NaN*ones(nptsd,2);
     Y2(1:nsamp,:)=contour_2;
 
-    % extract coordinates of non-dummy correspondences and use them
-    % to estimate transformation
     ind_good=find(~isnan(X2b(1:nsamp,1)));
     n_good=length(ind_good);
     X3b=X2b(ind_good,:);

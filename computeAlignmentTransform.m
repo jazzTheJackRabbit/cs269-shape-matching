@@ -32,7 +32,6 @@ shape_1_theta=atan2(Ztan(:,2)-Z(:,2),Ztan(:,1)-Z(:,1));
 figure(4)
 plot(Z(:,1),Z(:,2),'g^',contour_2(:,1),contour_2(:,2),'ro');
 axis('ij')
-title(['k=' int2str(current_iteration) ', \lambda_o=' num2str(lambda_o) ', I_f=' num2str(E) ', aff.cost=' num2str(aff_cost) ', SC cost=' num2str(sc_cost)])
 axis([1 shape_dim_2 1 shape_dim_1])
 
 % show warped coordinate grid
@@ -44,6 +43,6 @@ fy_aff=cy(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
 fy_wrp=cy(1:n_good)'*(d2.*log(d2+eps));
 fy=fy_aff+fy_wrp;
 hold on
-plot(fx,fy,'k.','markersize',1)
+plot(fx,fy,'.','markersize',12)
 hold off
 drawnow
