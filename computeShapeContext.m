@@ -23,7 +23,7 @@ r_array_normalized = radial_distance_array/mean_dist;
 r_bin_hist_edges = logspace(log10(r_bin_hist_start),log10(r_bin_hist_end),nbins_r);
 hist_r_bin_index_array = zeros(nsamp,nsamp);
 
-m = 1
+m = 1;
 while m <= nbins_r
    hist_r_bin_index_array = hist_r_bin_index_array+(r_array_normalized<r_bin_hist_edges(m));
    m = m + 1;
@@ -38,7 +38,7 @@ nbins=nbins_theta*nbins_r;
 shapeContextHistogram=zeros(nsamp,nbins);
 
 % Combine the theta and radial distance arrays into a sparse vector
-i = 1
+i = 1;
 while i <= nsamp
    fzn=flag_zero_array(i,:)&in_vec;
    Sn=sparse(hist_theta_bin_index_array(i,fzn),hist_r_bin_index_array(i,fzn),1,nbins_theta,nbins_r);
