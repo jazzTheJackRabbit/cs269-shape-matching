@@ -34,11 +34,11 @@ r_array_normalized = radial_distance_array/mean_dist;
 
 % use a log. scale for binning the distances
 r_bin_hist_edges = logspace(log10(r_bin_hist_start),log10(r_bin_hist_end),nbins_r);
-r_array_hist_count = zeros(nsamp,nsamp);
+hist_r_bin_index_array_ = zeros(nsamp,nsamp);
 for m=1:nbins_r
-   r_array_hist_count = r_array_hist_count+(r_array_normalized<r_bin_hist_edges(m));
+   hist_r_bin_index_array_ = hist_r_bin_index_array_+(r_array_normalized<r_bin_hist_edges(m));
 end
-fz=r_array_hist_count>0; % flag all points inside outer boundary
+flag_zero_array=hist_r_bin_index_array_>0; % flag all points inside outer boundary
 
 % put all angles in [0,2pi) range (angles here maybe negative, which is why
 % we just simply don't mod by 2pi
@@ -52,9 +52,9 @@ theta_array_q = 1+floor(theta_array_2/(2*pi/nbins_theta));
 nbins=nbins_theta*nbins_r;
 BH=zeros(nsamp,nbins);
 for n=1:nsamp
-   fzn=fz(n,:)&in_vec;
+   fzn=flag_zero_array(n,:)&in_vec;
    %Find out what this does
-   Sn=sparse(theta_array_q(n,fzn),r_array_hist_count(n,fzn),1,nbins_theta,nbins_r);
+   Sn=sparse(theta_array_q(n,fzn),hist_r_bin_index_array_(n,fzn),1,nbins_theta,nbins_r);
    BH(n,:)=Sn(:)';
 end
 

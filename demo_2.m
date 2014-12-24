@@ -100,15 +100,15 @@ x=x(:);y=y(:);M=length(x);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %t1 is the angle of the gradient for image 1
-k=1;
-s=1;
+current_iteration=1;
+warping=1;
 ndum=round(ndum_frac*nsamp);
 out_vec_1=zeros(1,nsamp);
 out_vec_2=zeros(1,nsamp);
 
 %Compute correspondence and alignment transform for each iteration
-while s
-    disp(['iter=' int2str(k)])
+while warping
+    disp(['iter=' int2str(current_iteration)])
     
     %Compute shape contexts for shape 1
     disp('computing shape contexts for (deformed) model...')    
@@ -123,14 +123,14 @@ while s
     disp('done.')
 
     if affine_start_flag
-        if k==1
+        if current_iteration==1
             % use huge regularization to get affine behavior
             lambda_o=1000;
         else
-            lambda_o=beta_init*r^(k-2);	 
+            lambda_o=beta_init*r^(current_iteration-2);	 
         end
     else
-        lambda_o=beta_init*r^(k-1);
+        lambda_o=beta_init*r^(current_iteration-1);
     end
     beta_k=(mean_dist_2^2)*lambda_o;
 
@@ -174,45 +174,39 @@ while s
     X3b=X2b(ind_good,:);
     Y3=Y2(ind_good,:);
 
-    if display_flag
-        figure(2)
-        plot(X2(:,1),X2(:,2),'g^',Y2(:,1),Y2(:,2),'ro')
-        hold on
-        h=plot([X2(:,1) Y2(:,1)]',[X2(:,2) Y2(:,2)]','k-');
+    figure(2)
+    plot(X2(:,1),X2(:,2),'g^',Y2(:,1),Y2(:,2),'ro')
+    hold on
+    h=plot([X2(:,1) Y2(:,1)]',[X2(:,2) Y2(:,2)]','k-');
 
-        if 1
-            %	 set(h,'linewidth',1)
-            quiver(contour_1(:,1),contour_1(:,2),cos(shape_1_theta),sin(shape_1_theta),0.5,'g')
-            quiver(contour_2(:,1),contour_2(:,2),cos(shape_2_theta),sin(shape_2_theta),0.5,'r')
-        end
-        
-        hold off
-        axis('ij')
-        title([int2str(n_good) ' correspondences (warped X)'])
-        axis([1 shape_dim_2 1 shape_dim_1])
-        drawnow	
-    end
+    %	 set(h,'linewidth',1)
+    quiver(contour_1(:,1),contour_1(:,2),cos(shape_1_theta),sin(shape_1_theta),0.5,'g')
+    quiver(contour_2(:,1),contour_2(:,2),cos(shape_2_theta),sin(shape_2_theta),0.5,'r')
 
-    if display_flag
-        % show the correspondences between the untransformed images
-        figure(3)
-        plot(contour_1(:,1),contour_1(:,2),'g^',contour_2(:,1),contour_2(:,2),'ro')
-        ind=cvec(ind_good);
-        hold on
-        plot([X2b(:,1) Y2(:,1)]',[X2b(:,2) Y2(:,2)]','k-')
-        hold off
-        axis('ij')
-        title([int2str(n_good) ' correspondences (unwarped X)'])
-        axis([1 shape_dim_2 1 shape_dim_1])
-        drawnow	
-    end
+    hold off
+    axis('ij')
+    title([int2str(n_good) ' correspondences (warped X)'])
+    axis([1 shape_dim_2 1 shape_dim_1])
+    drawnow	
+
+    % show the correspondences between the untransformed images
+    figure(3)
+    plot(contour_1(:,1),contour_1(:,2),'g^',contour_2(:,1),contour_2(:,2),'ro')
+    ind=cvec(ind_good);
+    hold on
+    plot([X2b(:,1) Y2(:,1)]',[X2b(:,2) Y2(:,2)]','k-')
+    hold off
+    axis('ij')
+    title([int2str(n_good) ' correspondences (unwarped X)'])
+    axis([1 shape_dim_2 1 shape_dim_1])
+    drawnow	
 
     [cx,cy,E]=bookstein(X3b,Y3,beta_k);
 
     % calculate affine cost
     A=[cx(n_good+2:n_good+3,:) cy(n_good+2:n_good+3,:)];
-    s=svd(A);
-    aff_cost=log(s(1)/s(2));
+    warping=svd(A);
+    aff_cost=log(warping(1)/warping(2));
 
     % calculate shape context cost
     [a1,b1]=min(costmat,[],1);
@@ -249,34 +243,33 @@ while s
     Ztan=[fx; fy]';
     shape_1_theta=atan2(Ztan(:,2)-Z(:,2),Ztan(:,1)-Z(:,1));
 
-    if display_flag
-        figure(4)
-        plot(Z(:,1),Z(:,2),'g^',contour_2(:,1),contour_2(:,2),'ro');
-        axis('ij')
-        title(['k=' int2str(k) ', \lambda_o=' num2str(lambda_o) ', I_f=' num2str(E) ', aff.cost=' num2str(aff_cost) ', SC cost=' num2str(sc_cost)])
-        axis([1 shape_dim_2 1 shape_dim_1])
-        
-        % show warped coordinate grid
-        fx_aff=cx(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
-        d2=eucledianDistMatrix(X3b,[x y]);
-        fx_wrp=cx(1:n_good)'*(d2.*log(d2+eps));
-        fx=fx_aff+fx_wrp;
-        fy_aff=cy(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
-        fy_wrp=cy(1:n_good)'*(d2.*log(d2+eps));
-        fy=fy_aff+fy_wrp;
-        hold on
-        plot(fx,fy,'k.','markersize',1)
-        hold off
-        drawnow
-    end
+    
+    figure(4)
+    plot(Z(:,1),Z(:,2),'g^',contour_2(:,1),contour_2(:,2),'ro');
+    axis('ij')
+    title(['k=' int2str(current_iteration) ', \lambda_o=' num2str(lambda_o) ', I_f=' num2str(E) ', aff.cost=' num2str(aff_cost) ', SC cost=' num2str(sc_cost)])
+    axis([1 shape_dim_2 1 shape_dim_1])
+
+    % show warped coordinate grid
+    fx_aff=cx(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
+    d2=eucledianDistMatrix(X3b,[x y]);
+    fx_wrp=cx(1:n_good)'*(d2.*log(d2+eps));
+    fx=fx_aff+fx_wrp;
+    fy_aff=cy(n_good+1:n_good+3)'*[ones(1,M); x'; y'];
+    fy_wrp=cy(1:n_good)'*(d2.*log(d2+eps));
+    fy=fy_aff+fy_wrp;
+    hold on
+    plot(fx,fy,'k.','markersize',1)
+    hold off
+    drawnow
 
     % update contour_1 for the next iteration
     contour_1=Z;
 
-    if k==n_iter
-        s=0;
+    if current_iteration==n_iter
+        warping=0;
     else
-        k=k+1;
+        current_iteration=current_iteration+1;
     end
 end
 
@@ -311,58 +304,4 @@ end
 %    im(V2-V1w)
 %    h=title(['SSD=' num2str(ssd_global)]);
 %    colormap(cmap)
-% end
-% 
-% %%%
-% %%% windowed SSD comparison
-% %%%
-% wd=2*w+1;
-% win_fun=gaussker(wd);
-% % extract sets of blocks around each coordinate
-% % first do 1st shape; need to use transformed coords.
-% win_list_1=zeros(nsamp,wd^2);
-% for qq=1:nsamp
-%    row_qq=round(contour_1(qq,2));
-%    col_qq=round(contour_1(qq,1));
-%    row_qq=max(w+1,min(N1-w,row_qq));
-%    col_qq=max(w+1,min(N2-w,col_qq));
-%    tmp=V1w(row_qq-w:row_qq+w,col_qq-w:col_qq+w);
-%    tmp=win_fun.*tmp;
-%    win_list_1(qq,:)=tmp(:)';
-% end
-% % now do 2nd shape
-% win_list_2=zeros(nsamp,wd^2);
-% for qq=1:nsamp
-%    row_qq=round(Y(qq,2));
-%    col_qq=round(Y(qq,1));
-%    row_qq=max(w+1,min(N1-w,row_qq));
-%    col_qq=max(w+1,min(N2-w,col_qq));
-%    tmp=V2(row_qq-w:row_qq+w,col_qq-w:col_qq+w);
-%    tmp=win_fun.*tmp;
-%    win_list_2(qq,:)=tmp(:)';
-% end
-% ssd_all=sqrt(eucledianDistMatrix(win_list_1,win_list_2));
-% if 0
-%    % visualize paired-up patches
-%    for qq=1:nsamp
-%       im([reshape(win_list_1(qq,:),wd,wd) reshape(win_list_2(b2(qq),:),wd,wd); ...
-% 	  reshape(win_list_2(qq,:),wd,wd) reshape(win_list_1(b1(qq),:),wd,wd)])
-%       colormap(cmap)
-%       pause
-%    end
-% end
-% % loop over nearest neighbors in both directions, project in
-% % both directions, take maximum
-% cost_1=0;
-% cost_2=0;
-% for qq=1:nsamp
-%    cost_1=cost_1+ssd_all(qq,b2(qq));
-%    cost_2=cost_2+ssd_all(b1(qq),qq);
-% end
-% ssd_local=(1/nsamp)*max(mean(cost_1),mean(cost_2));
-% ssd_local_avg=(1/nsamp)*0.5*(mean(cost_1)+mean(cost_2));
-% if display_flag
-% %   set(h,'string',['local SSD=' num2str(ssd_local) ', avg. local SSD=' num2str(ssd_local_avg)])
-%    set(h,'string',['local SSD=' num2str(ssd_local)])
-% end
-
+% end 
