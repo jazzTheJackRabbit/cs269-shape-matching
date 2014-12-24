@@ -1,5 +1,5 @@
 
-load parameters
+ load Params
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Load image from the Dataset
