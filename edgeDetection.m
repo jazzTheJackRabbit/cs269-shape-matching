@@ -1,17 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Edge Point Set Detection
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%Display first image on a 2x2 grid, at position 1
-
-%Display second image on a 2x2 grid, at position 2
-
-%Show image in grayscale
-colormap(color_map)
-drawnow
-
-disp('extracting boundary points');
-
 %Extract boundary points for the first shape
 [shape_1_x,shape_1_y,shape_1_theta]=extractBoundary(shape_1_matrix);
 
