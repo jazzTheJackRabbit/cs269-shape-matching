@@ -1,61 +1,45 @@
-% load in the digit database 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Initialization
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%TODO:
+% - TODO1: Replace with load dataset
+
+load parameters
+
+% TODO1:
+% Load 100 digits
 if ~(exist('train_data')&exist('label_train'))
-load digit_100_train_easy;
+    load digit_100_train_easy;
 %   load digit_100_train_hard;
 end
 
-% choose two digits to compare:
-mm=35;
-nn=42;
+% Choose two shapes to compare:
+shape_1=35;
+shape_2=42;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Define flags and parameters:
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% display_flag=1;
-% affine_start_flag=1;
-% polarity_flag=1;
-% nsamp=100;
-% eps_dum=0.25;
-% ndum_frac=0.25;        
-% mean_dist_global=[];
-% ori_weight=0.1;
-% nbins_theta=12;
-% nbins_r=5;
-% r_inner=1/8;
-% r_outer=2;
-% tan_eps=1.0;
-% n_iter=6;
-% beta_init=1;
-% r=1; % annealing rate
-% w=4;
-% sf=2.5; %scale factor
-
-load parameters
 cmap=flipud(gray);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Image Loading
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = load_shapes(mm,nn,train_data,sf);
+[shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = load_shapes(shape_1,shape_2,train_data,sf);
 
-if display_flag
-    %Display first image on a 2x2 grid, at position 1
-    figure(1)
-    subplot(2,2,1)
-    imagesc(shape_1_matrix);axis('image')
-    title(int2str(mm))
+%Display first image on a 2x2 grid, at position 1
+figure(1)
+subplot(2,2,1)
+imagesc(shape_1_matrix);axis('image')
+title(int2str(shape_1))
 
-    %Display second image on a 2x2 grid, at position 2
-    subplot(2,2,3)
-    imagesc(shape_2_matrix);axis('image')
-    title(int2str(nn))
+%Display second image on a 2x2 grid, at position 2
+subplot(2,2,3)
+imagesc(shape_2_matrix);axis('image')
+title(int2str(shape_2))
 
-    %Show image in grayscale
-    colormap(cmap)
-    drawnow
-end
+%Show image in grayscale
+colormap(cmap)
+drawnow
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Edge Detection
@@ -66,9 +50,7 @@ disp('extracting boundary points');
 %Extract boundary points for the first shape
 [shape_1_x,shape_1_y,shape_1_theta]=extractBoundary(shape_1_matrix);
 
-nsamp1=length(shape_1_x);
-
-if nsamp1 >= nsamp
+if length(shape_1_x) >= nsamp
     [shape_1_x,shape_1_y,shape_1_theta] = sampleBoundaryPoints(shape_1_x,shape_1_y,shape_1_theta,nsamp); %Needs change
 else  
     error('Shape 1: Insufficient samples')
@@ -80,9 +62,7 @@ contour_1 = [shape_1_x shape_1_y];
 %Extract boundary points for the second shape
 [shape_2_x,shape_2_y,shape_2_theta] = extractBoundary(shape_2_matrix);
 
-nsamp2 = length(shape_2_x);
-
-if nsamp2 >= nsamp
+if length(shape_2_x) >= nsamp
     [shape_2_x,shape_2_y,shape_2_theta] = sampleBoundaryPoints(shape_2_x,shape_2_y,shape_2_theta,nsamp);%Needs change
 else
     error('Shape 2: Insufficient samples')
@@ -91,33 +71,32 @@ end
 %contour_2 is the 100 sample point matrix from shape 2 
 contour_2 = [shape_2_x shape_2_y];
 
-
 %Display the contours
-if display_flag
-    subplot(2,2,2)
-    plot(contour_1(:,1),contour_1(:,2),'g^')
-    hold on
-    quiver(contour_1(:,1),contour_1(:,2),cos(shape_1_theta),sin(shape_1_theta),0.5,'g.')
-    hold off
-    axis('ij');axis([1 shape_dim_2 1 shape_dim_1])
-    title([int2str(length(shape_1_x)) ' samples'])
-    subplot(2,2,4)
-    plot(contour_2(:,1),contour_2(:,2),'ro')
-    hold on
-    quiver(contour_2(:,1),contour_2(:,2),cos(shape_2_theta),sin(shape_2_theta),0.5,'r.')
-    hold off
-    axis('ij');axis([1 shape_dim_2 1 shape_dim_1])
-    title([int2str(length(shape_2_x)) ' samples'])
-    drawnow	
-end
+subplot(2,2,2)
+plot(contour_1(:,1),contour_1(:,2),'g^')
+hold on
+quiver(contour_1(:,1),contour_1(:,2),cos(shape_1_theta),sin(shape_1_theta),0.5,'g.')
+hold off
+axis('ij');
+axis([1 shape_dim_2 1 shape_dim_1])
+title([int2str(length(shape_1_x)) ' samples'])
 
-if display_flag
-    [x,y]=meshgrid(linspace(1,shape_dim_2,36),linspace(1,shape_dim_1,36));
-    x=x(:);y=y(:);M=length(x);
-end
+subplot(2,2,4) 
+plot(contour_2(:,1),contour_2(:,2),'ro')
+hold on
+quiver(contour_2(:,1),contour_2(:,2),cos(shape_2_theta),sin(shape_2_theta),0.5,'r.')
+hold off
+axis('ij');
+axis([1 shape_dim_2 1 shape_dim_1])
+title([int2str(length(shape_2_x)) ' samples'])
+
+drawnow	
+
+[x,y]=meshgrid(linspace(1,shape_dim_2,36),linspace(1,shape_dim_1,36));
+x=x(:);y=y(:);M=length(x);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% compute correspondences
+%%% Compute correspondences
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %t1 is the angle of the gradient for image 1
