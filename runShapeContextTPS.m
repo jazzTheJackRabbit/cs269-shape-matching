@@ -22,27 +22,18 @@ while warping
     [shapeContextHistogram2,mean_dist_2]=computeShapeContext(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);    
     disp('done.')
 
-    if affine_start_flag
-        if current_iteration==1            
-            lambda_o=1000;
-        else
-            lambda_o=beta_init*r^(current_iteration-2);	 
-        end
+    if current_iteration==1            
+        lambda_o=1000;
     else
-        lambda_o=beta_init*r^(current_iteration-1);
+        lambda_o=beta_init*r^(current_iteration-2);	 
     end
+    
     beta_k=(mean_dist_2^2)*lambda_o;
 
     
     costmat_shape = computeHistogramCost(shapeContextHistogram1,shapeContextHistogram2);
     theta_diff=repmat(shape_1_theta,1,nsamp)-repmat(shape_2_theta',nsamp,1);    
-    if polarity_flag
-        costmat_theta=0.5*(1-cos(theta_diff));
-    else
-        % ignore edge polarity
-        costmat_theta=0.5*(1-cos(2*theta_diff));
-    end      
-    
+    costmat_theta=0.5*(1-cos(theta_diff));    
     costmat=(1-ori_weight)*costmat_shape+ori_weight*costmat_theta;
     nptsd=nsamp+ndum;
     costmat2=eps_dum*ones(nptsd,nptsd);
