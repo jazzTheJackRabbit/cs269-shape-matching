@@ -1,0 +1,67 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Initialization
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+load parameters
+
+% % TODO1:
+% % Load 100 digits
+% if ~(exist('train_data')&exist('label_train'))
+%     load digit_100_train_easy;
+% %   load digit_100_train_hard;
+% end
+% 
+[train_data label_data] = loadDataset('./Dataset/train-images-idx3-ubyte','./Dataset/train-labels-idx1-ubyte',100,0);
+
+% Choose two shapes to compare:
+digit_label_to_match  = 5;
+
+index_of_label_to_match = find(label_data,digit_label_to_match)
+
+
+shape_1=35;
+shape_2=42;
+
+cmap=flipud(gray);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Image Loading
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = load_shapes(train_data(:,:,shape_1),train_data(:,:,shape_2),train_data,sf);
+
+%Display first image on a 2x2 grid, at position 1
+figure(1)
+subplot(2,2,1)
+imagesc(shape_1_matrix);axis('image')
+title(int2str(shape_1))
+
+%Display second image on a 2x2 grid, at position 2
+subplot(2,2,3)
+imagesc(shape_2_matrix);axis('image')
+title(int2str(shape_2))
+
+%Show image in grayscale
+colormap(cmap)
+drawnow
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Edge Detection
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+edgeDetection
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Compute correspondences
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%t1 is the angle of the gradient for image 1
+current_iteration=1;
+warping=1;
+ndum=round(ndum_frac*nsamp);
+out_vec_1=zeros(1,nsamp);
+out_vec_2=zeros(1,nsamp);
+
+%Call computeShapeContextTPS script
+computeShapeContextTPS
+

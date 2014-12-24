@@ -1,4 +1,7 @@
-function [x,y,theta,samplePoints]=extractBoundary(im);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Extract Boundary
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [x,y,theta,samplePoints] = extractBoundary(im);
 
 samplePoints=contourc(im,[.5 .5]);
 [Gx,Gy]=gradient(im);

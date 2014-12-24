@@ -1,3 +1,6 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Load Dataset
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [images labels] = loadDataset(imageFile, labelFile, numberOfDigitsToRead, offset)
     
     % Read digits
