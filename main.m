@@ -25,36 +25,7 @@ color_map=flipud(gray);
 
 [shape_1_matrix,shape_2_matrix,shape_dim_1,shape_dim_2] = loadShapes(train_data(:,:,shape_1),train_data(:,:,shape_2),sf);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Plot shapes
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%Display first image on a 2x2 grid, at position 1
-figure(1)
-subplot(2,2,1)
-imagesc(shape_1_matrix);
-axis('image')
-title(strcat(int2str(digit_label_to_match),'@',int2str(shape_1)))
-
-%Display second image on a 2x2 grid, at position 2
-subplot(2,2,3)
-imagesc(shape_2_matrix);
-axis('image')
-title(strcat(int2str(digit_label_to_match),'@',int2str(shape_2)))
-
-%Show image in grayscale
-colormap(color_map)
-drawnow
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Edge Detection
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 edgeDetection
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Compute correspondences
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 runShapeContextTPS
 
