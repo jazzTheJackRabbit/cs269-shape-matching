@@ -3,10 +3,10 @@ while warping
     disp(['iter=' int2str(current_iteration)])
     
     %Compute shape contexts for shape 1
-    [BH1,mean_dist_1]=sc_compute(contour_1',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);     
+    [shapeContextHistogram1,mean_dist_1]=computeAlignmentTransform(contour_1',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_1);     
     %Compute shape contexts for shape 2
     disp('computing shape contexts for target...')        
-    [BH2,mean_dist_2]=sc_compute(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);   
+    [BshapeContextHistogram2,mean_dist_2]=computeAlignmentTransform(contour_2',zeros(1,nsamp),mean_dist_global,nbins_theta,nbins_r,r_inner,r_outer,out_vec_2);   
     
         if current_iteration==1
                 lambda_o=1000;
@@ -16,7 +16,7 @@ while warping
         beta_k=(mean_dist_2^2)*lambda_o;
 
     
-    costmat_shape=hist_cost_2(BH1,BH2);
+    costmat_shape=hist_cost_2(shapeContextHistogram1,BshapeContextHistogram2);
     theta_diff=repmat(shape_1_theta,1,nsamp)-repmat(shape_2_theta',nsamp,1);
     
     costmat_theta=0.5*(1-cos(theta_diff));
