@@ -57,7 +57,6 @@ while warping
 
     hold off
     axis('ij')
-    title([int2str(n_good) ' correspondences (warped X)'])
     axis([1 shape_dim_2 1 shape_dim_1])
     drawnow	
 
