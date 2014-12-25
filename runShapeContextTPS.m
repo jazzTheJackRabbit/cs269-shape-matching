@@ -30,15 +30,7 @@ while warping
     
     beta_k=(mean_dist_2^2)*lambda_o;
 
-    
-    costmat_shape = computeHistogramCost(shapeContextHistogram1,shapeContextHistogram2);
-    theta_diff=repmat(shape_1_theta,1,nsamp)-repmat(shape_2_theta',nsamp,1);    
-    costmat_theta=0.5*(1-cos(theta_diff));    
-    costmat=(1-ori_weight)*costmat_shape+ori_weight*costmat_theta;
-    nptsd=nsamp+ndum;
-    costmat2=eps_dum*ones(nptsd,nptsd);
-    costmat2(1:nsamp,1:nsamp)=costmat;
-    cvec=hungarian(costmat2);
+    estimateCostForShapeContext    
 
     [a,cvec2]=sort(cvec);
     out_vec_1=cvec2(1:nsamp)>nsamp;
@@ -87,17 +79,10 @@ while warping
 
     [cx,cy,E]=solveTPS(X3b,Y3,beta_k);
 
-    % calculate affine cost
-    A=[cx(n_good+2:n_good+3,:) cy(n_good+2:n_good+3,:)];
-    warping=svd(A);
-    aff_cost=log(warping(1)/warping(2));
+    computeAffineCost
 
-    % calculate shape context cost
-    [a1,b1]=min(costmat,[],1);
-    [a2,b2]=min(costmat,[],2);
-    sc_cost=max(mean(a1),mean(a2));
+    computeShapeContextCost
 
-    %Call computeAlignmentTransform script
     computeAlignmentTransform
 
     % update contour_1 for the next iteration
