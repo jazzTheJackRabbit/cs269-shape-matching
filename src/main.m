@@ -8,7 +8,7 @@
 [train_data label_data] = loadDataset('Dataset/train-images-idx3-ubyte','Dataset/train-labels-idx1-ubyte',100,0);
 
 % Choose label of the shape to compare:
-digit_label_to_match  = randi([0, 9]);
+digit_label_to_match  = 2;%randi([0, 9]);
 
 digit_label_mask = label_data == digit_label_to_match;
 index_of_label_to_match = find(digit_label_mask);
