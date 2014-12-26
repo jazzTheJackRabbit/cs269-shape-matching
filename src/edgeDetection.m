@@ -30,7 +30,7 @@ contour_2 = [shape_2_x shape_2_y];
 figure(1)
 subplot(1,2,1)
 imagesc(shape_1_matrix);
-% axis('image')
+axis('image')
 hold on
 plot(contour_1(:,1),contour_1(:,2),'g^')
 quiver(contour_1(:,1),contour_1(:,2),cos(shape_1_theta),sin(shape_1_theta),0.5,'g.')
@@ -40,7 +40,7 @@ axis([1 shape_dim_2 1 shape_dim_1])
 
 subplot(1,2,2)
 imagesc(shape_2_matrix);
-% axis('image')
+axis('image')
 hold on
 plot(contour_2(:,1),contour_2(:,2),'ro')
 quiver(contour_2(:,1),contour_2(:,2),cos(shape_2_theta),sin(shape_2_theta),0.5,'r.')
