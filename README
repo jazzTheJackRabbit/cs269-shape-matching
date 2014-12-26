@@ -1,3 +1,4 @@
-This uses test data from Yann LeCun's MNIST database; see
-http://www.research.att.com/~yann/ocr/mnist/ for details.
+Abstract - Images of the same shape may vary significantly in their vector representations. To match these shapes, we compute the shape context, which is a shape descriptor that captures the relative positions of other points on the shape contours. This gives a globally discriminative characterization of the shape and not just a localized descriptor. For matching, we find the correspondence between these points by posing it as a weighted bipartite graph-matching problem (optimal assignment). Having found the correspondence, we then use regularized thin-plate splines for finding the aligning transform that best matches the shapes. Finally, we conclude by suggesting a potential application of our implementation for object recognition.
+
+In our experiments, we use Yann LeCun's MNIST database (http://www.research.att.com/~yann/ocr/mnist/)
 
